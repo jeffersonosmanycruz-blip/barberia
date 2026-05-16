@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Barbería</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background: #d4af37;
+            color: black;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        input, select {
+            width: 80%;
+            padding: 12px;
+            margin: 10px;
+            border-radius: 10px;
+            border: none;
+        }
+
+        button {
+            width: 85%;
+            padding: 15px;
+            margin: 10px;
+            background: #d4af37;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            cursor: pointer;
+            background: white;
+            color: black;
+        }
+
+        .card {
+            background: #222;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .ok {
+            color: lime;
+        }
+
+        .bad {
+            color: red;
+        }
+
+        .wa {
+            background: #25D366;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>💈 Barbería Pro</h1>
+
+<div class="container">
+
+<!-- 📲 WHATSAPP -->
+<a href="https://wa.me/5049862_6521?text=Hola%20quiero%20agendar%20una%20cita%20en%20la%20barbería"
+   target="_blank">
+
+    <button class="wa">💬 Reservar por WhatsApp</button>
+
+</a>
+
+<p>{{ mensaje }}</p>
+
+<h2>Reservar cita</h2>
+
+<form method="POST">
+
+    <!-- 👤 NOMBRE -->
+    <input type="text" name="nombre" placeholder="Nombre del cliente" required>
+
+    <!-- 📅 FECHA -->
+    <input type="date" name="fecha" required>
+
+    <!-- 🕒 HORA -->
+    <select name="hora" required>
+        {% for h in horarios %}
+            <option value="{{ h }}">{{ h }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Reservar cita</button>
+
+</form>
+
+<h2>Citas registradas</h2>
+
+{% for c in citas %}
+    <div class="card">
+        👤 {{ c[0] }} <br>
+        📅 {{ c[1] }}
+    </div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>
