@@ -1,105 +1,130 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import sqlite3
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 
-# 🔒 LICENCIA (1 MES)
-fecha_inicio = datetime(2026, 5, 16)
-fecha_fin = fecha_inicio + timedelta(days=30)
-
-# ⛔ BLOQUEO SI EXPIRA
-if datetime.now() > fecha_fin:
-    print("❌ Sistema bloqueado. Contacta al desarrollador.")
-    exit()
-
-
-# 🗄️ BASE DE DATOS
-def conectar():
+# =========================
+# CREAR BASE DE DATOS
+# =========================
+def init_db():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS citas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT,
-        fecha_hora TEXT
+        nombre TEXT NOT NULL,
+        telefono TEXT NOT NULL,
+        fecha_hora TEXT NOT NULL
     )
     """)
 
     conn.commit()
-    return conn, cursor
+    conn.close()
 
+init_db()
 
-# 🕒 HORARIOS
+# =========================
+# HORARIOS
+# =========================
 horarios = [
-    "08:00", "09:00", "10:00",
-    "11:00", "12:00",
-    "1:00", "2:00", "3:00", "4:00",
-    "5:00", "6:00", "7:00", "8:00"
+   
+    "8:00 AM",
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+    "6:00 PM",
+    "7:00 PM",
+    "8:00 PM"
 ]
 
+# =========================
+# LIBERAR CITAS PASADAS
+# =========================
+def liberar_citas_pasadas():
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
 
-@app.route("/", methods=["GET", "POST"])
-def index():
+    ahora = datetime.now()
 
-    conn, cursor = conectar()
-    mensaje = ""
-
-    # 🔥 BORRAR CITAS PASADAS AUTOMÁTICAMENTE
-    ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    cursor.execute(
-        "DELETE FROM citas WHERE fecha_hora < ?",
-        (ahora,)
-    )
-    conn.commit()
-
-    # ➕ AGENDAR CITA
-    if request.method == "POST":
-
-        nombre = request.form["nombre"]
-        fecha = request.form["fecha"]
-        hora = request.form["hora"]
-
-        # 🔥 UNIR FECHA + HORA
-        fecha_hora = f"{fecha} {hora}"
-
-        # ❌ VERIFICAR SI YA EXISTE
-        cursor.execute(
-            "SELECT * FROM citas WHERE fecha_hora=?",
-            (fecha_hora,)
-        )
-
-        existe = cursor.fetchone()
-
-        if existe:
-            mensaje = "❌ Ese horario ya está ocupado"
-        else:
-            cursor.execute(
-                "INSERT INTO citas (nombre, fecha_hora) VALUES (?, ?)",
-                (nombre, fecha_hora)
-            )
-
-            conn.commit()
-            mensaje = "✔ Cita guardada correctamente"
-
-    # 📋 CITAS
-    cursor.execute("SELECT nombre, fecha_hora FROM citas")
+    cursor.execute("SELECT id, fecha_hora FROM citas")
     citas = cursor.fetchall()
 
-    # ⛔ OCUPADAS
+    for cita in citas:
+        cita_id = cita[0]
+        fecha_hora = cita[1]
+
+        fecha_cita = datetime.strptime(fecha_hora, "%Y-%m-%d %I:%M %p")
+
+        if fecha_cita < ahora:
+            cursor.execute("DELETE FROM citas WHERE id = ?", (cita_id,))
+
+    conn.commit()
+    conn.close()
+
+# =========================
+# PAGINA PRINCIPAL
+# =========================
+@app.route("/")
+def index():
+
+    liberar_citas_pasadas()
+
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
     cursor.execute("SELECT fecha_hora FROM citas")
-    ocupadas = [c[0] for c in cursor.fetchall()]
+    citas_db = cursor.fetchall()
+
+    conn.close()
+
+    citas_ocupadas = [cita[0] for cita in citas_db]
 
     return render_template(
         "index.html",
         horarios=horarios,
-        citas=citas,
-        ocupadas=ocupadas,
-        mensaje=mensaje
+        citas_ocupadas=citas_ocupadas
     )
 
+# =========================
+# AGENDAR CITA
+# =========================
+@app.route("/agendar", methods=["POST"])
+def agendar():
 
+    nombre = request.form["nombre"]
+    telefono = request.form["telefono"]
+    fecha = request.form["fecha"]
+    hora = request.form["hora"]
+
+    fecha_hora = f"{fecha} {hora}"
+
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO citas (nombre, telefono, fecha_hora)
+    VALUES (?, ?, ?)
+    """, (nombre, telefono, fecha_hora))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+# =========================
+# INICIAR APP
+# =========================
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=True
+    )
