@@ -45,9 +45,9 @@
         }
 
         button:hover {
-            cursor: pointer;
             background: white;
             color: black;
+            cursor: pointer;
         }
 
         .card {
@@ -57,11 +57,14 @@
             border-radius: 10px;
         }
 
+        .ocupada {
+            background: #b30000;
+        }
+
         .wa {
             background: #25D366;
             color: white;
         }
-
     </style>
 
 </head>
@@ -72,45 +75,38 @@
 
 <div class="container">
 
-<!-- 📲 WHATSAPP -->
-<a href="https://wa.me/50498626521?text=Hola%20quiero%20agendar%20una%20cita%20en%20la%20barbería"
+<!-- WHATSAPP -->
+<a href="https://wa.me/50498626521?text=Hola%20quiero%20agendar%20una%20cita"
    target="_blank">
 
     <button class="wa">💬 Reservar por WhatsApp</button>
 
 </a>
 
-<p>{{ mensaje }}</p>
-
 <h2>Reservar cita</h2>
 
-<!-- ✔ FORMULARIO CORREGIDO -->
 <form action="/agendar" method="POST">
 
-    <!-- 👤 NOMBRE -->
-    <input type="text" name="nombre" placeholder="Nombre del cliente" required>
+    <input type="text" name="nombre" placeholder="Nombre" required>
 
-    <!-- 📞 TELÉFONO (ARREGLA TU ERROR) -->
     <input type="text" name="telefono" placeholder="Teléfono" required>
 
-    <!-- 📅 FECHA -->
     <input type="date" name="fecha" required>
 
-    <!-- 🕒 HORA -->
     <select name="hora" required>
         {% for h in horarios %}
             <option value="{{ h }}">{{ h }}</option>
         {% endfor %}
     </select>
 
-    <button type="submit">Reservar cita</button>
+    <button type="submit">Reservar</button>
 
 </form>
 
-<h2>Citas registradas</h2>
+<h2>📅 Citas ya reservadas</h2>
 
 {% for c in citas %}
-    <div class="card">
+    <div class="card ocupada">
         👤 {{ c[0] }} <br>
         📅 {{ c[1] }}
     </div>
@@ -119,4 +115,4 @@
 </div>
 
 </body>
-</html>s
+</html>

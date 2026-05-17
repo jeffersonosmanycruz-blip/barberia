@@ -17,8 +17,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         telefono TEXT NOT NULL,
-        fecha_hora TEXT NOT NULL,
-        estado TEXT NOT NULL DEFAULT 'pendiente'
+        fecha_hora TEXT NOT NULL
     )
     """)
 
@@ -27,6 +26,8 @@ def init_db():
 
 init_db()
 
+# =========================
+# HORARIOS
 # =========================
 horarios = [
     "8:00 AM","9:00 AM","10:00 AM","11:00 AM",
@@ -41,14 +42,14 @@ def liberar_citas_pasadas():
 
     ahora = datetime.now()
 
-    cursor.execute("SELECT id, fecha_hora FROM citas WHERE estado != 'cancelada'")
+    cursor.execute("SELECT id, fecha_hora FROM citas")
     citas = cursor.fetchall()
 
     for cita in citas:
         try:
             fecha_cita = datetime.strptime(cita[1], "%Y-%m-%d %I:%M %p")
             if fecha_cita < ahora:
-                cursor.execute("DELETE FROM citas WHERE id = ?", (cita[0],))
+                cursor.execute("DELETE FROM citas WHERE id=?", (cita[0],))
         except:
             pass
 
@@ -56,7 +57,7 @@ def liberar_citas_pasadas():
     conn.close()
 
 # =========================
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
 
     liberar_citas_pasadas()
@@ -64,18 +65,15 @@ def index():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, nombre, telefono, fecha_hora, estado FROM citas")
+    cursor.execute("SELECT nombre, fecha_hora FROM citas")
     citas = cursor.fetchall()
 
     conn.close()
 
-    ocupadas = [c[3] for c in citas if c[4] != "cancelada"]
-
     return render_template(
         "index.html",
         horarios=horarios,
-        citas=citas,
-        citas_ocupadas=ocupadas
+        citas=citas
     )
 
 # =========================
@@ -92,8 +90,8 @@ def agendar():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    # 🔒 BLOQUEO: no permitir doble reserva
-    cursor.execute("SELECT * FROM citas WHERE fecha_hora=? AND estado!='cancelada'", (fecha_hora,))
+    # evitar doble reserva
+    cursor.execute("SELECT * FROM citas WHERE fecha_hora=?", (fecha_hora,))
     existe = cursor.fetchone()
 
     if existe:
@@ -101,37 +99,9 @@ def agendar():
         return redirect("/")
 
     cursor.execute("""
-        INSERT INTO citas (nombre, telefono, fecha_hora, estado)
-        VALUES (?, ?, ?, 'pendiente')
+        INSERT INTO citas (nombre, telefono, fecha_hora)
+        VALUES (?, ?, ?)
     """, (nombre, telefono, fecha_hora))
-
-    conn.commit()
-    conn.close()
-
-    return redirect("/")
-
-# =========================
-@app.route("/cancelar/<int:id>")
-def cancelar(id):
-
-    conn = sqlite3.connect("barberia.db")
-    cursor = conn.cursor()
-
-    cursor.execute("UPDATE citas SET estado='cancelada' WHERE id=?", (id,))
-
-    conn.commit()
-    conn.close()
-
-    return redirect("/")
-
-# =========================
-@app.route("/confirmar/<int:id>")
-def confirmar(id):
-
-    conn = sqlite3.connect("barberia.db")
-    cursor = conn.cursor()
-
-    cursor.execute("UPDATE citas SET estado='confirmada' WHERE id=?", (id,))
 
     conn.commit()
     conn.close()
