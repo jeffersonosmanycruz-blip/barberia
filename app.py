@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -30,7 +30,6 @@ init_db()
 # HORARIOS
 # =========================
 horarios = [
-   
     "8:00 AM",
     "9:00 AM",
     "10:00 AM",
@@ -61,10 +60,13 @@ def liberar_citas_pasadas():
         cita_id = cita[0]
         fecha_hora = cita[1]
 
-        fecha_cita = datetime.strptime(fecha_hora, "%Y-%m-%d %I:%M %p")
+        try:
+            fecha_cita = datetime.strptime(fecha_hora, "%Y-%m-%d %I:%M %p")
 
-        if fecha_cita < ahora:
-            cursor.execute("DELETE FROM citas WHERE id = ?", (cita_id,))
+            if fecha_cita < ahora:
+                cursor.execute("DELETE FROM citas WHERE id = ?", (cita_id,))
+        except:
+            pass
 
     conn.commit()
     conn.close()
@@ -72,7 +74,7 @@ def liberar_citas_pasadas():
 # =========================
 # PAGINA PRINCIPAL
 # =========================
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
 
     liberar_citas_pasadas()
