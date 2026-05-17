@@ -86,7 +86,6 @@ def agendar():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    # evitar doble reserva
     cursor.execute("SELECT * FROM citas WHERE fecha_hora=?", (fecha_hora,))
     existe = cursor.fetchone()
 
@@ -114,7 +113,6 @@ def cancelar():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    # SOLO si coincide teléfono + cita
     cursor.execute("""
         DELETE FROM citas
         WHERE telefono=? AND fecha_hora=?

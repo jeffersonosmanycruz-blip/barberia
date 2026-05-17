@@ -61,6 +61,11 @@
             background: red;
             color: white;
         }
+
+        .wa {
+            background: #25D366;
+            color: white;
+        }
     </style>
 
 </head>
@@ -70,6 +75,14 @@
 <h1>💈 Barbería Pro</h1>
 
 <div class="container">
+
+<!-- 💬 WHATSAPP (RESTAURADO) -->
+<a href="https://wa.me/50498626521?text=Hola%20quiero%20agendar%20una%20cita%20en%20la%20barbería"
+   target="_blank">
+
+    <button class="wa">💬 Reservar por WhatsApp</button>
+
+</a>
 
 <h2>Reservar cita</h2>
 
@@ -100,7 +113,6 @@
 
         <br><br>
 
-        <!-- FORM PARA CANCELAR -->
         <form action="/cancelar" method="POST">
             <input type="hidden" name="fecha_hora" value="{{ c[2] }}">
             <input type="text" name="telefono" placeholder="Tu teléfono para cancelar" required>
