@@ -6,27 +6,6 @@ import os
 app = Flask(__name__)
 
 # =========================
-# CREAR BASE DE DATOS
-# =========================
-def init_db():
-    conn = sqlite3.connect("barberia.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS citas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        telefono TEXT NOT NULL,
-        fecha_hora TEXT NOT NULL
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# =========================
 # HORARIOS
 # =========================
 horarios = [
@@ -43,6 +22,25 @@ horarios = [
     "7:00 PM",
     "8:00 PM"
 ]
+
+# =========================
+# BASE DE DATOS
+# =========================
+def init_db():
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS citas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        telefono TEXT NOT NULL,
+        fecha_hora TEXT NOT NULL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
 
 # =========================
 # LIBERAR CITAS PASADAS
@@ -76,7 +74,6 @@ def liberar_citas_pasadas():
 # =========================
 @app.route("/", methods=["GET"])
 def index():
-
     liberar_citas_pasadas()
 
     conn = sqlite3.connect("barberia.db")
@@ -100,7 +97,6 @@ def index():
 # =========================
 @app.route("/agendar", methods=["POST"])
 def agendar():
-
     nombre = request.form["nombre"]
     telefono = request.form["telefono"]
     fecha = request.form["fecha"]
@@ -122,11 +118,13 @@ def agendar():
     return redirect("/")
 
 # =========================
-# INICIAR APP
+# INICIAR APP (RAILWAY OK)
 # =========================
 if __name__ == "__main__":
+    init_db()
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
-        debug=True
+        port=int(os.environ.get("PORT", 8080)),
+        debug=False
+    
     )
