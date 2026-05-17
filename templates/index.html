@@ -69,7 +69,6 @@
             background: #25D366;
             color: white;
         }
-
     </style>
 
 </head>
@@ -81,7 +80,7 @@
 <div class="container">
 
 <!-- 📲 WHATSAPP -->
-<a href="https://wa.me/5049862_6521?text=Hola%20quiero%20agendar%20una%20cita%20en%20la%20barbería"
+<a href="https://wa.me/50498626521?text=Hola%20quiero%20agendar%20una%20cita%20en%20la%20barbería"
    target="_blank">
 
     <button class="wa">💬 Reservar por WhatsApp</button>
@@ -92,7 +91,8 @@
 
 <h2>Reservar cita</h2>
 
-<form method="POST">
+<!-- ✔ FIX PRINCIPAL AQUÍ -->
+<form action="/agendar" method="POST">
 
     <!-- 👤 NOMBRE -->
     <input type="text" name="nombre" placeholder="Nombre del cliente" required>
