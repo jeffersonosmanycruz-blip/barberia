@@ -57,18 +57,11 @@
             border-radius: 10px;
         }
 
-        .ok {
-            color: lime;
-        }
-
-        .bad {
-            color: red;
-        }
-
         .wa {
             background: #25D366;
             color: white;
         }
+
     </style>
 
 </head>
@@ -91,11 +84,14 @@
 
 <h2>Reservar cita</h2>
 
-<!-- ✔ FIX PRINCIPAL AQUÍ -->
+<!-- ✔ FORMULARIO CORREGIDO -->
 <form action="/agendar" method="POST">
 
     <!-- 👤 NOMBRE -->
     <input type="text" name="nombre" placeholder="Nombre del cliente" required>
+
+    <!-- 📞 TELÉFONO (ARREGLA TU ERROR) -->
+    <input type="text" name="telefono" placeholder="Teléfono" required>
 
     <!-- 📅 FECHA -->
     <input type="date" name="fecha" required>
@@ -123,4 +119,4 @@
 </div>
 
 </body>
-</html>
+</html>s
