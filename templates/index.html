@@ -57,17 +57,8 @@
             border-radius: 10px;
         }
 
-        .ocupada {
-            background: #b30000;
-        }
-
-        .cancelar {
+        .danger {
             background: red;
-            color: white;
-        }
-
-        .wa {
-            background: #25D366;
             color: white;
         }
     </style>
@@ -79,14 +70,6 @@
 <h1>💈 Barbería Pro</h1>
 
 <div class="container">
-
-<!-- WHATSAPP -->
-<a href="https://wa.me/50498626521?text=Hola%20quiero%20agendar%20una%20cita"
-   target="_blank">
-
-    <button class="wa">💬 Reservar por WhatsApp</button>
-
-</a>
 
 <h2>Reservar cita</h2>
 
@@ -111,13 +94,19 @@
 <h2>📅 Citas reservadas</h2>
 
 {% for c in citas %}
-    <div class="card ocupada">
+    <div class="card">
         👤 {{ c[1] }} <br>
-        📅 {{ c[2] }} <br><br>
+        📅 {{ c[2] }}
 
-        <a href="/cancelar/{{ c[0] }}">
-            <button class="cancelar">❌ Cancelar cita</button>
-        </a>
+        <br><br>
+
+        <!-- FORM PARA CANCELAR -->
+        <form action="/cancelar" method="POST">
+            <input type="hidden" name="fecha_hora" value="{{ c[2] }}">
+            <input type="text" name="telefono" placeholder="Tu teléfono para cancelar" required>
+            <button class="danger" type="submit">❌ Cancelar (solo dueño)</button>
+        </form>
+
     </div>
 {% endfor %}
 

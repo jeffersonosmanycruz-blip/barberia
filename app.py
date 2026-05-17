@@ -6,8 +6,6 @@ import os
 app = Flask(__name__)
 
 # =========================
-# BASE DE DATOS
-# =========================
 def init_db():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
@@ -26,8 +24,6 @@ def init_db():
 
 init_db()
 
-# =========================
-# HORARIOS
 # =========================
 horarios = [
     "8:00 AM","9:00 AM","10:00 AM","11:00 AM",
@@ -109,13 +105,20 @@ def agendar():
     return redirect("/")
 
 # =========================
-@app.route("/cancelar/<int:id>")
-def cancelar(id):
+@app.route("/cancelar", methods=["POST"])
+def cancelar():
+
+    telefono = request.form["telefono"]
+    fecha_hora = request.form["fecha_hora"]
 
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM citas WHERE id=?", (id,))
+    # SOLO si coincide teléfono + cita
+    cursor.execute("""
+        DELETE FROM citas
+        WHERE telefono=? AND fecha_hora=?
+    """, (telefono, fecha_hora))
 
     conn.commit()
     conn.close()
