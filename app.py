@@ -65,7 +65,7 @@ def index():
     conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT nombre, fecha_hora FROM citas")
+    cursor.execute("SELECT id, nombre, fecha_hora FROM citas")
     citas = cursor.fetchall()
 
     conn.close()
@@ -102,6 +102,20 @@ def agendar():
         INSERT INTO citas (nombre, telefono, fecha_hora)
         VALUES (?, ?, ?)
     """, (nombre, telefono, fecha_hora))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+# =========================
+@app.route("/cancelar/<int:id>")
+def cancelar(id):
+
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM citas WHERE id=?", (id,))
 
     conn.commit()
     conn.close()

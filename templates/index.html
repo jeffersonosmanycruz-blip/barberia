@@ -61,6 +61,11 @@
             background: #b30000;
         }
 
+        .cancelar {
+            background: red;
+            color: white;
+        }
+
         .wa {
             background: #25D366;
             color: white;
@@ -103,12 +108,16 @@
 
 </form>
 
-<h2>📅 Citas ya reservadas</h2>
+<h2>📅 Citas reservadas</h2>
 
 {% for c in citas %}
     <div class="card ocupada">
-        👤 {{ c[0] }} <br>
-        📅 {{ c[1] }}
+        👤 {{ c[1] }} <br>
+        📅 {{ c[2] }} <br><br>
+
+        <a href="/cancelar/{{ c[0] }}">
+            <button class="cancelar">❌ Cancelar cita</button>
+        </a>
     </div>
 {% endfor %}
 
