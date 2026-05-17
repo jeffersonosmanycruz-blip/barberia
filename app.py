@@ -6,28 +6,12 @@ import os
 app = Flask(__name__)
 
 # =========================
-# HORARIOS
+# BASE DE DATOS (RAILWAY SAFE)
 # =========================
-horarios = [
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM"
-]
+DB_PATH = "/tmp/barberia.db"
 
-# =========================
-# BASE DE DATOS
-# =========================
 def init_db():
-    conn = sqlite3.connect("barberia.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -42,11 +26,22 @@ def init_db():
     conn.commit()
     conn.close()
 
+init_db()
+
+# =========================
+# HORARIOS
+# =========================
+horarios = [
+    "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
+    "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM",
+    "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"
+]
+
 # =========================
 # LIBERAR CITAS PASADAS
 # =========================
 def liberar_citas_pasadas():
-    conn = sqlite3.connect("barberia.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     ahora = datetime.now()
@@ -76,7 +71,7 @@ def liberar_citas_pasadas():
 def index():
     liberar_citas_pasadas()
 
-    conn = sqlite3.connect("barberia.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("SELECT fecha_hora FROM citas")
@@ -104,7 +99,7 @@ def agendar():
 
     fecha_hora = f"{fecha} {hora}"
 
-    conn = sqlite3.connect("barberia.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -118,13 +113,8 @@ def agendar():
     return redirect("/")
 
 # =========================
-# INICIAR APP (RAILWAY OK)
+# INICIAR APP
 # =========================
 if __name__ == "__main__":
-    init_db()
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 8080)),
-        debug=False
-    
-    )
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
