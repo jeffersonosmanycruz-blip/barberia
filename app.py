@@ -6,12 +6,10 @@ import os
 app = Flask(__name__)
 
 # =========================
-# BASE DE DATOS (RAILWAY SAFE)
+# BASE DE DATOS
 # =========================
-DB_PATH = "/tmp/barberia.db"
-
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -19,7 +17,8 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         telefono TEXT NOT NULL,
-        fecha_hora TEXT NOT NULL
+        fecha_hora TEXT NOT NULL,
+        estado TEXT NOT NULL DEFAULT 'pendiente'
     )
     """)
 
@@ -29,35 +28,27 @@ def init_db():
 init_db()
 
 # =========================
-# HORARIOS
-# =========================
 horarios = [
-    "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
-    "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM",
-    "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"
+    "8:00 AM","9:00 AM","10:00 AM","11:00 AM",
+    "1:00 PM","2:00 PM","3:00 PM","4:00 PM",
+    "5:00 PM","6:00 PM","7:00 PM","8:00 PM"
 ]
 
 # =========================
-# LIBERAR CITAS PASADAS
-# =========================
 def liberar_citas_pasadas():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
     ahora = datetime.now()
 
-    cursor.execute("SELECT id, fecha_hora FROM citas")
+    cursor.execute("SELECT id, fecha_hora FROM citas WHERE estado != 'cancelada'")
     citas = cursor.fetchall()
 
     for cita in citas:
-        cita_id = cita[0]
-        fecha_hora = cita[1]
-
         try:
-            fecha_cita = datetime.strptime(fecha_hora, "%Y-%m-%d %I:%M %p")
-
+            fecha_cita = datetime.strptime(cita[1], "%Y-%m-%d %I:%M %p")
             if fecha_cita < ahora:
-                cursor.execute("DELETE FROM citas WHERE id = ?", (cita_id,))
+                cursor.execute("DELETE FROM citas WHERE id = ?", (cita[0],))
         except:
             pass
 
@@ -65,33 +56,32 @@ def liberar_citas_pasadas():
     conn.close()
 
 # =========================
-# PAGINA PRINCIPAL
-# =========================
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
+
     liberar_citas_pasadas()
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT fecha_hora FROM citas")
-    citas_db = cursor.fetchall()
+    cursor.execute("SELECT id, nombre, telefono, fecha_hora, estado FROM citas")
+    citas = cursor.fetchall()
 
     conn.close()
 
-    citas_ocupadas = [cita[0] for cita in citas_db]
+    ocupadas = [c[3] for c in citas if c[4] != "cancelada"]
 
     return render_template(
         "index.html",
         horarios=horarios,
-        citas_ocupadas=citas_ocupadas
+        citas=citas,
+        citas_ocupadas=ocupadas
     )
 
 # =========================
-# AGENDAR CITA
-# =========================
 @app.route("/agendar", methods=["POST"])
 def agendar():
+
     nombre = request.form["nombre"]
     telefono = request.form["telefono"]
     fecha = request.form["fecha"]
@@ -99,12 +89,20 @@ def agendar():
 
     fecha_hora = f"{fecha} {hora}"
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect("barberia.db")
     cursor = conn.cursor()
 
+    # 🔒 BLOQUEO: no permitir doble reserva
+    cursor.execute("SELECT * FROM citas WHERE fecha_hora=? AND estado!='cancelada'", (fecha_hora,))
+    existe = cursor.fetchone()
+
+    if existe:
+        conn.close()
+        return redirect("/")
+
     cursor.execute("""
-    INSERT INTO citas (nombre, telefono, fecha_hora)
-    VALUES (?, ?, ?)
+        INSERT INTO citas (nombre, telefono, fecha_hora, estado)
+        VALUES (?, ?, ?, 'pendiente')
     """, (nombre, telefono, fecha_hora))
 
     conn.commit()
@@ -113,7 +111,33 @@ def agendar():
     return redirect("/")
 
 # =========================
-# INICIAR APP
+@app.route("/cancelar/<int:id>")
+def cancelar(id):
+
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE citas SET estado='cancelada' WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+# =========================
+@app.route("/confirmar/<int:id>")
+def confirmar(id):
+
+    conn = sqlite3.connect("barberia.db")
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE citas SET estado='confirmada' WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
